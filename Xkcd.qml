@@ -132,6 +132,14 @@ Item {
     if (i >= 0 && i < root.results.length) root.current = root.results[i]
   }
 
+  // Only load comic images from xkcd's own image host, over HTTPS. The API is
+  // trusted for comic data, but a compromised response could point `img` at
+  // file://, localhost, or an unbounded stream.
+  function imageUrl(comic) {
+    var url = comic && comic.img ? String(comic.img) : ""
+    return /^https:\/\/imgs\.xkcd\.com\//.test(url) ? url : ""
+  }
+
   function openComic(comic) {
     if (!comic || !comic.num) return
     Quickshell.execDetached(["xdg-open", "https://xkcd.com/" + comic.num])
@@ -149,12 +157,14 @@ Item {
   Timer { id: copyReset; interval: 1600; onTriggered: root.copyStatus = "" }
 
   function copyImage(comic) {
-    if (!comic || !comic.img || copyProc.running) return
-    var url = String(comic.img)
+    var url = imageUrl(comic)
+    if (!url || copyProc.running) return
     var type = /\.jpe?g(\?|$)/i.test(url) ? "image/jpeg" : "image/png"
-    // Stream the image straight from xkcd into wl-copy so nothing touches disk.
+    // Stream the image straight from xkcd into wl-copy so nothing touches
+    // disk. HTTPS only, no redirects (-L dropped), and hard size/time caps so
+    // even a hostile server can't stream unbounded data into the clipboard.
     copyProc.command = ["sh", "-c",
-      "curl -fsSL \"$1\" | wl-copy --type \"$2\"", "sh", url, type]
+      "curl -fsS --proto '=https' --max-filesize 20971520 --max-time 30 \"$1\" | wl-copy --type \"$2\"", "sh", url, type]
     root.copyStatus = "copying"
     copyReset.stop()
     copyProc.running = true

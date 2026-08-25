@@ -272,7 +272,7 @@ Column {
         fillMode: Image.PreserveAspectFit
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: preview.c && preview.c.img ? preview.c.img : ""
+        source: view.engine.imageUrl(preview.c)
         sourceSize.width: 1024
         asynchronous: true
         cache: true
