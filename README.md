@@ -7,7 +7,7 @@ Browse and search every xkcd comic from the [Omarchy](https://omarchy.org) bar â
 ## Install
 
 ```bash
-omarchy plugin add <git-url> --enable
+omarchy plugin add https://github.com/cossssmin/omarchy-xkcd.git --enable
 ```
 
 ## Usage
