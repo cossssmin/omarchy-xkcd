@@ -150,6 +150,56 @@ Item {
     Quickshell.execDetached(["xdg-open", "https://www.explainxkcd.com/wiki/index.php/" + comic.num])
   }
 
+  // --- Comic image transport -----------------------------------------------
+  // QML Image's own network fetch follows redirects wherever the server
+  // points it, so the shell never gives it a network URL. The bytes travel
+  // through the same hardened curl as copyImage and reach Image as a data:
+  // URL instead.
+  property string imageData: ""
+  property bool imageFailed: false
+  property int imageGen: 0
+  property string pendingImageUrl: ""
+
+  onCurrentChanged: fetchImage()
+
+  function fetchImage() {
+    var url = imageUrl(root.current)
+    root.imageGen++
+    root.imageFailed = false
+    root.imageData = ""
+    if (!url) { root.imageFailed = root.current !== null; return }
+    root.pendingImageUrl = url
+    // A running fetch is stale now; kill it and let onExited start this one.
+    if (imgProc.running) { imgProc.running = false; return }
+    startImageProc()
+  }
+
+  function startImageProc() {
+    var url = root.pendingImageUrl
+    root.pendingImageUrl = ""
+    if (!url) return
+    imgProc.mime = /\.jpe?g(\?|$)/i.test(url) ? "image/jpeg" : "image/png"
+    imgProc.gen = root.imageGen
+    imgProc.command = ["sh", "-c",
+      "curl -fsS --proto '=https' --max-filesize 20971520 --max-time 30 \"$1\" | base64 -w0", "sh", url]
+    imgProc.running = true
+  }
+
+  Process {
+    id: imgProc
+    property int gen: 0
+    property string mime: "image/png"
+    stdout: StdioCollector { id: imgOut; waitForEnd: true }
+    onExited: function(code) {
+      if (root.pendingImageUrl !== "") { root.startImageProc(); return }
+      if (gen !== root.imageGen) return
+      if (code === 0 && imgOut.text.length > 0)
+        root.imageData = "data:" + mime + ";base64," + imgOut.text
+      else
+        root.imageFailed = true
+    }
+  }
+
   // --- Copy the comic image to the Wayland clipboard -----------------------
   // "" | "copying" | "done" | "error", shown transiently by the view.
   property string copyStatus: ""

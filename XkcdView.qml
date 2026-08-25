@@ -272,7 +272,7 @@ Column {
         fillMode: Image.PreserveAspectFit
         horizontalAlignment: Image.AlignHCenter
         verticalAlignment: Image.AlignVCenter
-        source: view.engine.imageUrl(preview.c)
+        source: view.engine.imageData
         sourceSize.width: 1024
         asynchronous: true
         cache: true
@@ -284,7 +284,7 @@ Column {
       Text {
         anchors.centerIn: parent
         visible: img.status !== Image.Ready
-        text: img.status === Image.Error ? "image unavailable" : "…"
+        text: img.status === Image.Error || view.engine.imageFailed ? "image unavailable" : "…"
         color: "#888888"
         font.family: view.fontFamily
         font.pixelSize: Style.font.caption
