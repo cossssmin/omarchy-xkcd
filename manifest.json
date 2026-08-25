@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "cossssmin.xkcd",
+  "name": "Omaxkcd",
+  "version": "1.0.0",
+  "author": "cossssmin",
+  "license": "MIT",
+  "description": "Browse and search every xkcd comic from the bar — latest, by number, or full-text search over title, alt text, and transcript.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Omaxkcd",
+    "description": "Latest comic, lookup by number, or full-text search",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
