@@ -71,6 +71,29 @@ Column {
     else if (b > flick.contentY + flick.height) flick.contentY = b - flick.height + Style.space(4)
   }
 
+  // Instant tooltip shown to the left of an action button, tighter than the
+  // stock PanelToolTip contentItem, which pads with the full control padding
+  // tokens.
+  component TightToolTip: PanelToolTip {
+    id: tip
+    delay: 0
+    fontFamily: view.fontFamily
+    fontSize: Style.font.caption
+    x: -width - Style.space(6)
+    y: (parent.height - height) / 2
+
+    contentItem: Text {
+      text: tip.text
+      color: tip.panelForeground
+      font.family: tip.fontFamily
+      font.pixelSize: tip.fontSize
+      leftPadding: Border.left(tip.panelBorderSpec) + Style.space(6)
+      rightPadding: Border.right(tip.panelBorderSpec) + Style.space(6)
+      topPadding: Border.top(tip.panelBorderSpec) + Style.space(3)
+      bottomPadding: Border.bottom(tip.panelBorderSpec) + Style.space(3)
+    }
+  }
+
   Timer { id: debounce; interval: 200; onTriggered: view.runInput() }
 
   Connections {
@@ -137,6 +160,14 @@ Column {
         input.text = ""
         debounce.stop()
         view.engine.shuffle()
+      }
+
+      property bool hover: false
+      onHovered: isHovered => hover = isHovered
+
+      TightToolTip {
+        visible: shuffleBtn.hover
+        text: "Random comic"
       }
     }
 
@@ -238,33 +269,31 @@ Column {
         }
       }
 
-      Text {
+      PanelActionButton {
         id: copyBtn
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        text: {
+        enabled: view.engine.copyStatus !== "copying"
+        iconText: {
           switch (view.engine.copyStatus) {
-          case "copying": return "copying…"
-          case "done": return "copied ✓"
-          case "error": return "copy failed"
-          default: return "copy image"
+          case "done": return "󰄬"
+          case "error": return "󰅙"
+          default: return "󰆏"
           }
         }
-        color: view.engine.copyStatus === "done" ? Color.accent
-             : view.engine.copyStatus === "error" ? Color.urgent
-             : copyHover.containsMouse ? Color.accent : Util.alpha(view.foreground, 0.6)
-        font.family: view.fontFamily
-        font.pixelSize: Style.font.caption
-        font.bold: true
-        font.underline: copyHover.containsMouse && view.engine.copyStatus === ""
+        foreground: view.engine.copyStatus === "done" ? Color.accent
+                  : view.engine.copyStatus === "error" ? Color.urgent
+                  : view.foreground
+        hoverColor: Color.accent
+        fontFamily: view.fontFamily
+        onClicked: view.engine.copyImage(preview.c)
 
-        MouseArea {
-          id: copyHover
-          anchors.fill: parent
-          anchors.margins: -Style.space(4)
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: view.engine.copyImage(preview.c)
+        property bool hover: false
+        onHovered: isHovered => hover = isHovered
+
+        TightToolTip {
+          visible: copyBtn.hover && view.engine.copyStatus === ""
+          text: "Copy image"
         }
       }
     }
