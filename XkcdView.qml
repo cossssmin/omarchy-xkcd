@@ -175,6 +175,7 @@ Column {
       if (view.engine.mode === "latest") return "Latest comic"
       return ""
     }
+    textFormat: Text.PlainText
     color: view.engine.error !== "" ? Color.urgent : Util.alpha(view.foreground, 0.6)
     font.family: view.fontFamily
     font.pixelSize: Style.font.caption
@@ -203,6 +204,7 @@ Column {
         anchors.verticalCenter: parent.verticalCenter
         wrapMode: Text.WordWrap
         text: preview.c ? ("#" + preview.c.num + " · " + preview.c.title) : ""
+        textFormat: Text.PlainText
         color: view.foreground
         font.family: view.fontFamily
         font.pixelSize: Style.font.body
@@ -252,6 +254,7 @@ Column {
     Text {
       width: parent.width
       text: view.comicDate(preview.c)
+      textFormat: Text.PlainText
       color: Util.alpha(view.foreground, 0.55)
       font.family: view.fontFamily
       font.pixelSize: Style.font.caption
@@ -311,6 +314,7 @@ Column {
         maximumLineCount: 3
         elide: Text.ElideRight
         text: preview.c ? preview.c.alt : ""
+        textFormat: Text.PlainText
         color: Util.alpha(view.foreground, 0.75)
         font.family: view.fontFamily
         font.pixelSize: Style.font.caption
@@ -358,6 +362,7 @@ Column {
               anchors.verticalCenter: parent.verticalCenter
               width: Style.space(40)
               text: "#" + row.modelData.num
+              textFormat: Text.PlainText
               color: Util.alpha(view.foreground, 0.55)
               font.family: view.fontFamily
               font.pixelSize: Style.font.caption
@@ -371,6 +376,7 @@ Column {
               anchors.verticalCenter: parent.verticalCenter
               elide: Text.ElideRight
               text: row.modelData.title
+              textFormat: Text.PlainText
               color: view.foreground
               font.family: view.fontFamily
               font.pixelSize: Style.font.body
@@ -382,6 +388,7 @@ Column {
               anchors.rightMargin: Style.space(8)
               anchors.verticalCenter: parent.verticalCenter
               text: row.modelData.year
+              textFormat: Text.PlainText
               color: Util.alpha(view.foreground, 0.4)
               font.family: view.fontFamily
               font.pixelSize: Style.font.caption
