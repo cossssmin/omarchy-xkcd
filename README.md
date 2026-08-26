@@ -1,8 +1,18 @@
 # Omaxkcd
 
-Browse and search every xkcd comic from the [Omarchy](https://omarchy.org) bar — latest, by number, or full-text search over title, alt text, and transcript.
+Browse and search every xkcd comic from the [Omarchy](https://omarchy.org) bar - latest, by number, random, or full-text search over title, alt text, and transcript.
 
-![Omaxkcd panel](screenshot.png)
+![Omaxkcd panel](preview.png)
+
+## Features
+
+- Shows the latest comic when opened
+- Jump to any comic by number
+- Full-text search over titles, alt text, and transcripts
+- Shuffle button for a random comic
+- Copy the comic image to the clipboard
+- Click through to the comic on xkcd.com
+- Follows your Omarchy theme (colors, fonts, spacing)
 
 ## Install
 
@@ -10,15 +20,34 @@ Browse and search every xkcd comic from the [Omarchy](https://omarchy.org) bar �
 omarchy plugin add https://github.com/cossssmin/omarchy-xkcd.git --enable
 ```
 
+The widget lands in the bar's right section by default.
+
 ## Usage
 
-Click the `xk/cd` icon in the bar (or use the panel keybindings):
+Click the `xk/cd` icon in the bar:
 
 - Empty query shows the latest comic
 - Type a number to jump to that comic
 - Type anything else to full-text search titles, alt text, and transcripts
 - `↑`/`↓` move through results, `Enter` opens the comic on xkcd.com
-- Click the comic image to open it on xkcd.com, or `copy image` to copy it to the clipboard
+- Click the comic title or image to open it on xkcd.com
+- The shuffle button (top right) picks a random comic
+- The copy button next to the comic title copies the image to the clipboard
+- `Escape` closes the panel
+
+## Configuration
+
+Nothing to configure :) Colors, fonts, and spacing follow your Omarchy theme automatically.
+
+## Dependencies
+
+Everything below ships with a stock Omarchy install:
+
+- `curl` - fetches comic images
+- `wl-clipboard` (`wl-copy`) - copies images to the clipboard
+- `xdg-open` - opens comics in your browser
+
+Comic data comes from the public [xkcd search API](https://api.xkcdsearch.workers.dev) (mirrors xkcd's own JSON and adds full-text search). Images are only ever loaded from `imgs.xkcd.com` over HTTPS.
 
 ## Remove
 
