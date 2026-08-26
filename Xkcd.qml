@@ -180,8 +180,11 @@ Item {
     if (!url) return
     imgProc.mime = /\.jpe?g(\?|$)/i.test(url) ? "image/jpeg" : "image/png"
     imgProc.gen = root.imageGen
+    // pipefail + head -c (cap + 1): a response larger than the cap SIGPIPEs
+    // curl and fails the pipeline, so the collector can never buffer more
+    // than cap + 1 bytes worth of base64 no matter what the server streams.
     imgProc.command = ["sh", "-c",
-      "curl -fsS --proto '=https' --max-filesize 20971520 --max-time 30 \"$1\" | base64 -w0", "sh", url]
+      "set -o pipefail; curl -fsS --proto '=https' --max-filesize 20971520 --max-time 30 \"$1\" | head -c 20971521 | base64 -w0", "sh", url]
     imgProc.running = true
   }
 
@@ -190,10 +193,14 @@ Item {
     property int gen: 0
     property string mime: "image/png"
     stdout: StdioCollector { id: imgOut; waitForEnd: true }
+    // Base64 length of exactly maxImageBytes; anything longer means head hit
+    // its cap on a response that ended right at cap + 1 bytes without
+    // tripping pipefail, i.e. a truncated image — reject, never render it.
+    readonly property int maxB64: Math.ceil(20971520 / 3) * 4
     onExited: function(code) {
       if (root.pendingImageUrl !== "") { root.startImageProc(); return }
       if (gen !== root.imageGen) return
-      if (code === 0 && imgOut.text.length > 0)
+      if (code === 0 && imgOut.text.length > 0 && imgOut.text.length <= maxB64)
         root.imageData = "data:" + mime + ";base64," + imgOut.text
       else
         root.imageFailed = true
@@ -210,11 +217,16 @@ Item {
     var url = imageUrl(comic)
     if (!url || copyProc.running) return
     var type = /\.jpe?g(\?|$)/i.test(url) ? "image/jpeg" : "image/png"
-    // Stream the image straight from xkcd into wl-copy so nothing touches
-    // disk. HTTPS only, no redirects (-L dropped), and hard size/time caps so
-    // even a hostile server can't stream unbounded data into the clipboard.
+    // Buffer in XDG_RUNTIME_DIR (tmpfs) with a hard byte cap before wl-copy
+    // ever sees the data: pipefail + head -c (cap + 1) bound the stream, and
+    // the size check rejects a capped partial so a truncated image can never
+    // land in the clipboard as if it were the real one.
     copyProc.command = ["sh", "-c",
-      "curl -fsS --proto '=https' --max-filesize 20971520 --max-time 30 \"$1\" | wl-copy --type \"$2\"", "sh", url, type]
+      'set -o pipefail; f=$(mktemp "${XDG_RUNTIME_DIR:-/tmp}/xkcd-copy.XXXXXX") || exit 1; ' +
+      'trap \'rm -f "$f"\' EXIT; ' +
+      'curl -fsS --proto \'=https\' --max-filesize 20971520 --max-time 30 "$1" | head -c 20971521 > "$f" || exit 1; ' +
+      '[ "$(wc -c < "$f")" -le 20971520 ] || exit 1; ' +
+      'wl-copy --type "$2" < "$f"', "sh", url, type]
     root.copyStatus = "copying"
     copyReset.stop()
     copyProc.running = true
