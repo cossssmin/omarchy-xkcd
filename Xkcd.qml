@@ -93,8 +93,29 @@ Item {
     root.query = ""
     get("/latest", gen, function(data) {
       if (!data) { root.fail("Could not load the latest comic"); return }
+      root.latestNum = data.num
       root.current = data
     })
+  }
+
+  // Highest known comic number, learned from /latest; shuffle picks below it.
+  property int latestNum: 0
+
+  function shuffle() {
+    if (root.latestNum > 0) { loadRandomNumber(); return }
+    var gen = begin()
+    get("/latest", gen, function(data) {
+      if (!data) { root.fail("Could not load the latest comic"); return }
+      root.latestNum = data.num
+      loadRandomNumber()
+    })
+  }
+
+  function loadRandomNumber() {
+    var n
+    // #404 famously doesn't exist.
+    do { n = 1 + Math.floor(Math.random() * root.latestNum) } while (n === 404)
+    loadNumber(n)
   }
 
   function loadNumber(n) {

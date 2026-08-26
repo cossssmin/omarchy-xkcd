@@ -123,11 +123,29 @@ Column {
       }
     }
 
+    PanelActionButton {
+      id: shuffleBtn
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      iconText: ""
+      foreground: view.foreground
+      hoverColor: Color.accent
+      fontFamily: view.fontFamily
+      onClicked: {
+        // Clearing the field restarts the debounce, which would clobber the
+        // shuffle with a loadLatest — stop it after.
+        input.text = ""
+        debounce.stop()
+        view.engine.shuffle()
+      }
+    }
+
     Column {
       id: headerText
       anchors.left: glyph.right
       anchors.leftMargin: Style.space(12)
-      anchors.right: parent.right
+      anchors.right: shuffleBtn.left
+      anchors.rightMargin: Style.space(10)
       anchors.verticalCenter: parent.verticalCenter
       spacing: Style.space(1)
 
